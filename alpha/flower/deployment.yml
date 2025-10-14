@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kkambbaki-alpha-flower
+  namespace: kkambbaki-alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kkambbaki-alpha-flower
+  template:
+    metadata:
+      labels:
+        app: kkambbaki-alpha-flower
+    spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
+      containers:
+      - name: kkambbaki-alpha-flower
+        imagePullPolicy: Always
+        image: shinkeonkim/kkambbaki_api:alpha
+        command: [ "celery", "-A", "config", "flower", "--port=5555" ]
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        envFrom:
+        - configMapRef:
+            name: kkambbaki-alpha-config
+        - secretRef:
+            name: kkambbaki-alpha-postgres-secret
+        - secretRef:
+            name: kkambbaki-alpha-webapp-secret
+        ports:
+        - containerPort: 5555
+        volumeMounts:
+        - name: static-files
+          mountPath: /app/staticfiles
+        - name: media-files
+          mountPath: /app/media
+      volumes:
+      - name: static-files
+        persistentVolumeClaim:
+          claimName: kkambbaki-alpha-static-pvc
+      - name: media-files
+        persistentVolumeClaim:
+          claimName: kkambbaki-alpha-media-pvc

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kkambbaki-alpha-test-postgres
+  namespace: kkambbaki-alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kkambbaki-alpha-test-postgres
+  template:
+    metadata:
+      labels:
+        app: kkambbaki-alpha-test-postgres
+    spec:
+      containers:
+      - name: test-postgres
+        image: postgres:15.4
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        env:
+        - name: POSTGRES_USER
+          value: "kkambbaki_test_user"
+        - name: POSTGRES_PASSWORD
+          value: "kkambbaki_test_password"
+        - name: POSTGRES_DB
+          value: "kkambbaki_alpha_test_db"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: test-postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: test-postgres-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kkambbaki-alpha-test-postgres
+  namespace: kkambbaki-alpha
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: kkambbaki-alpha-test-postgres

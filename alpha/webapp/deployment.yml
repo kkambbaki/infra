@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kkambbaki-alpha-webapp
+  namespace: kkambbaki-alpha
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "shinkeonkim/kkambbaki_api:alpha"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: kkambbaki-alpha-webapp
+  template:
+    metadata:
+      labels:
+        app: kkambbaki-alpha-webapp
+    spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
+      dnsPolicy: ClusterFirst
+      containers:
+      - name: kkambbaki-alpha-webapp
+        imagePullPolicy: Always
+        image: shinkeonkim/kkambbaki_api:alpha
+        command: [ "/app/entrypoint.sh" ]
+        args: [ "uv", "run", "uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--port", "8080" ]
+        envFrom:
+        - configMapRef:
+            name: kkambbaki-alpha-config
+        - secretRef:
+            name: kkambbaki-alpha-postgres-secret
+        - secretRef:
+            name: kkambbaki-alpha-webapp-secret
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health-check/
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health-check/
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: static-files
+          mountPath: /app/staticfiles
+        - name: media-files
+          mountPath: /app/media
+      volumes:
+      - name: static-files
+        persistentVolumeClaim:
+          claimName: kkambbaki-alpha-static-pvc
+      - name: media-files
+        persistentVolumeClaim:
+          claimName: kkambbaki-alpha-media-pvc
