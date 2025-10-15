@@ -12,8 +12,6 @@ spec:
     services:
     - name: kkambbaki-alpha-nginx-static-svc
       port: 80
-    middlewares:
-    - name: kkambbaki-alpha-redirect-to-https
   tls:
     secretName: kkambbaki-alpha-certificate
 ---

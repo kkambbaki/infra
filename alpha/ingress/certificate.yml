@@ -10,21 +10,3 @@ spec:
     kind: ClusterIssuer
   dnsNames:
   - alpha.singun11.wtf
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: kkambbaki-alpha-ingress-https
-  namespace: kkambbaki-alpha
-spec:
-  entryPoints:
-  - websecure
-  routes:
-  - match: Host(`alpha.singun11.wtf`)
-    kind: Rule
-    services:
-    - kind: Service
-      name: kkambbaki-alpha-nginx-static-svc
-      port: 80
-  tls:
-    secretName: kkambbaki-alpha-certificate
