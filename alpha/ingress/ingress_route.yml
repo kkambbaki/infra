@@ -7,6 +7,11 @@ spec:
   entryPoints:
   - websecure
   routes:
+  - match: Host(`alpha.singun11.wtf`) && PathPrefix(`/api/`)
+    kind: Rule
+    services:
+    - name: kkambbaki-alpha-nginx-static-svc
+      port: 80
   - match: Host(`alpha.singun11.wtf`)
     kind: Rule
     services:
