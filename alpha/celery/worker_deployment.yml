@@ -36,9 +36,9 @@ spec:
             name: kkambbaki-alpha-webapp-secret
         volumeMounts:
         - name: static-files
-          mountPath: /app/staticfiles
+          mountPath: /app/webapp/staticfiles
         - name: media-files
-          mountPath: /app/media
+          mountPath: /app/webapp/media
       volumes:
       - name: static-files
         persistentVolumeClaim:

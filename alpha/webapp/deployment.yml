@@ -47,9 +47,9 @@ spec:
         - containerPort: 8080
         volumeMounts:
         - name: static-files
-          mountPath: /app/staticfiles
+          mountPath: /app/webapp/staticfiles
         - name: media-files
-          mountPath: /app/media
+          mountPath: /app/webapp/media
       volumes:
       - name: static-files
         persistentVolumeClaim:
