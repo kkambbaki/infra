@@ -1,0 +1,23 @@
+# 환경 변수
+.env
+
+# SSL 인증서
+ssl/*.pem
+ssl/*.key
+ssl/*.crt
+
+# 백업 파일
+*.sql
+*.backup
+
+# 로그 파일
+*.log
+
+# 임시 파일
+*.tmp
+*.swp
+*~
+
+# OS 파일
+.DS_Store
+Thumbs.db
