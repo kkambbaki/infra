@@ -149,7 +149,7 @@ docker-compose exec -T webapp python manage.py collectstatic --noinput || {
 log_info "헬스 체크를 실행합니다..."
 sleep 5
 
-HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost/health/}"
+HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost/api/v1/health-check/}"
 MAX_RETRIES=10
 RETRY_COUNT=0
 
