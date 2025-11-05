@@ -18,7 +18,7 @@ spec:
       containers:
       - name: kkambbaki-alpha-flower
         imagePullPolicy: Always
-        image: shinkeonkim/kkambbaki_api:alpha
+        image: shinkeonkim/kkambbaki_api:alpha-celery
         command: [ "celery", "-A", "config", "flower", "--port=5555" ]
         resources:
           requests:

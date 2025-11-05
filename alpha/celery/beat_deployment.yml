@@ -18,7 +18,7 @@ spec:
       containers:
       - name: kkambbaki-alpha-celery-beat
         imagePullPolicy: Always
-        image: shinkeonkim/kkambbaki_api:alpha
+        image: shinkeonkim/kkambbaki_api:alpha-celery
         command: [ "celery", "-A", "config", "beat", "-l", "INFO", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler" ]
         resources:
           requests:

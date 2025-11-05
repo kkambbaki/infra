@@ -18,15 +18,15 @@ spec:
       containers:
       - name: kkambbaki-alpha-celery-worker
         imagePullPolicy: Always
-        image: shinkeonkim/kkambbaki_api:alpha
+        image: shinkeonkim/kkambbaki_api:alpha-celery
         command: [ "celery", "-A", "config", "worker", "-l", "INFO" ]
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
             memory: "512Mi"
             cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
         envFrom:
         - configMapRef:
             name: kkambbaki-alpha-config
