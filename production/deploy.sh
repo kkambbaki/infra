@@ -2,8 +2,12 @@
 
 # 프로덕션 배포 스크립트
 # EC2 서버에서 실행됩니다.
+# GitHub Actions 또는 수동으로 실행 가능합니다.
 
 set -e
+
+# 스크립트 실행 위치 기록
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -25,7 +29,8 @@ log_error() {
 }
 
 # 배포 디렉토리로 이동
-DEPLOY_DIR="${DEPLOY_DIR:-$HOME/kkambbaki/infra/production}"
+# 스크립트가 있는 디렉토리를 기본값으로 사용
+DEPLOY_DIR="${DEPLOY_DIR:-$SCRIPT_DIR}"
 cd "$DEPLOY_DIR" || {
     log_error "배포 디렉토리를 찾을 수 없습니다: $DEPLOY_DIR"
     exit 1
@@ -87,6 +92,41 @@ docker-compose down --timeout 30
 
 # 새 컨테이너 시작
 docker-compose up -d
+
+# 컨테이너 시작 대기 및 확인
+log_info "컨테이너 시작을 기다립니다..."
+MAX_WAIT=60
+WAIT_COUNT=0
+
+while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+    # webapp 컨테이너가 실행 중인지 확인
+    if docker-compose ps webapp | grep -q "Up"; then
+        log_info "webapp 컨테이너가 시작되었습니다."
+
+        # 컨테이너가 실제로 요청을 받을 준비가 되었는지 추가 확인
+        sleep 3
+
+        # Django가 준비되었는지 확인
+        if docker-compose exec -T webapp python -c "import django; print('Django OK')" 2>/dev/null | grep -q "Django OK"; then
+            log_info "Django 애플리케이션이 준비되었습니다."
+            break
+        else
+            log_info "Django 애플리케이션이 아직 준비 중입니다..."
+        fi
+    else
+        log_info "webapp 컨테이너 시작 대기 중... (${WAIT_COUNT}초/${MAX_WAIT}초)"
+    fi
+
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    sleep 1
+done
+
+if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+    log_error "컨테이너 시작 시간 초과"
+    docker-compose ps
+    docker-compose logs --tail=50 webapp
+    exit 1
+fi
 
 log_info "컨테이너 시작 완료"
 
