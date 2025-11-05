@@ -2,9 +2,8 @@ services:
   webapp:
     image: ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG:-production}
     container_name: kkambbaki-webapp
+    network_mode: "host"
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
-    ports:
-      - "8000:8000"
     volumes:
       - static_volume:/app/webapp/staticfiles
       - media_volume:/app/webapp/media
@@ -12,23 +11,17 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
-    depends_on:
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - kkambbaki-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   celery-worker:
     image: ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG:-production}-celery
     container_name: kkambbaki-celery-worker
+    network_mode: "host"
     command: celery -A config worker -l INFO --concurrency=2
     volumes:
       - media_volume:/app/webapp/media
@@ -36,23 +29,17 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
-    depends_on:
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - kkambbaki-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   celery-beat:
     image: ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG:-production}-celery
     container_name: kkambbaki-celery-beat
+    network_mode: "host"
     command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - media_volume:/app/webapp/media
@@ -60,49 +47,33 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
-    depends_on:
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - kkambbaki-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   flower:
     image: ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG:-production}-celery
     container_name: kkambbaki-flower
+    network_mode: "host"
     command: celery -A config flower --port=5555 --url_prefix=flower
-    ports:
-      - "5555:5555"
     env_file:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
-    depends_on:
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - kkambbaki-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   redis:
     image: redis:7-alpine
     container_name: kkambbaki-redis
-    ports:
-      - "6379:6379"
+    network_mode: "host"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -116,38 +87,26 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - kkambbaki-network
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
 
   nginx:
     image: nginx:alpine
     container_name: kkambbaki-nginx
-    ports:
-      - "80:80"
-      - "443:443"
+    network_mode: "host"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - static_volume:/usr/share/nginx/html/static:ro
       - media_volume:/usr/share/nginx/html/media:ro
       - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - webapp
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - kkambbaki-network
 
 volumes:
   static_volume:
   media_volume:
   redis_data:
-
-networks:
-  kkambbaki-network:
-    driver: bridge
