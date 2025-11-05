@@ -3,7 +3,7 @@ services:
     image: ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG:-production}
     container_name: kkambbaki-webapp
     network_mode: "host"
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
+    command: uv run uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --workers 2
     volumes:
       - static_volume:/app/webapp/staticfiles
       - media_volume:/app/webapp/media
