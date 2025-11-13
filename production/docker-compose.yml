@@ -25,6 +25,7 @@ services:
     command: celery -A config worker -l INFO --concurrency=2
     volumes:
       - media_volume:/app/webapp/media
+      - static_volume:/app/webapp/staticfiles
     env_file:
       - .env
     environment:
@@ -43,6 +44,7 @@ services:
     command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - media_volume:/app/webapp/media
+      - static_volume:/app/webapp/staticfiles
     env_file:
       - .env
     environment:
